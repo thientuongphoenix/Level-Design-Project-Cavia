@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class CubeRoll : MonoBehaviour
@@ -26,8 +26,9 @@ public class CubeRoll : MonoBehaviour
 
         float remainingAngle = 90;
         float rotationAngle = 0;
-        float radius = 0.5f; // half size of the cube (assuming cube size = 1 unit)
-        Vector3 anchor = transform.position + (Vector3.down + direction) * radius;
+        //float radius = 0.5f; // half size of the cube (assuming cube size = 1 unit)
+        //Vector3 anchor = transform.position + (Vector3.down + direction) * radius;
+        Vector3 anchor = transform.position + (Vector3.down + direction) * (transform.localScale.y / 2f);
         Vector3 axis = Vector3.Cross(Vector3.up, direction);
 
         while (remainingAngle > 0)
@@ -40,9 +41,36 @@ public class CubeRoll : MonoBehaviour
         }
 
         // Snap to grid (avoid floating point error)
-        Vector3 position = transform.position;
-        transform.position = new Vector3(Mathf.Round(position.x), Mathf.Round(position.y), Mathf.Round(position.z));
+        //Vector3 position = transform.position;
+        //transform.position = new Vector3(Mathf.Round(position.x), Mathf.Round(position.y), Mathf.Round(position.z));
+
+        Vector3 pos = transform.position;
+        transform.position = new Vector3(
+            Mathf.Round(pos.x),
+            Mathf.Round(pos.y * 2) / 2f, // làm tròn đến 0.5
+            Mathf.Round(pos.z)
+        );
 
         isRolling = false;
+    }
+
+    bool CanRoll(Vector3 direction)
+    {
+        Vector3 origin = transform.position + Vector3.up * 0.5f; // từ giữa cube
+        RaycastHit hit;
+
+        // Cast về phía trước ở tầm mắt
+        if (Physics.Raycast(origin, direction, out hit, 1f))
+        {
+            float heightDiff = hit.point.y - transform.position.y;
+
+            // Nếu khối phía trước cao hơn đúng 1 đơn vị
+            if (Mathf.Abs(heightDiff - 1f) < 0.1f)
+            {
+                return true; // OK để leo
+            }
+        }
+
+        return false;
     }
 }
